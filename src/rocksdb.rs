@@ -18,14 +18,9 @@ use crocksdb_ffi::{
     DBTitanDBOptions, DBWriteBatch,
 };
 use libc::{self, c_char, c_int, c_void, size_t};
-use librocksdb_sys::DBMemoryAllocator;
+use librocksdb_sys::{DBMemoryAllocator, crocksdb_transactiondb_open_column_families};
 use metadata::ColumnFamilyMetaData;
-use rocksdb_options::{
-    CColumnFamilyDescriptor, ColumnFamilyDescriptor, ColumnFamilyOptions, CompactOptions,
-    CompactionOptions, DBOptions, EnvOptions, FlushOptions, HistogramData,
-    IngestExternalFileOptions, LRUCacheOptions, ReadOptions, RestoreOptions, UnsafeSnap,
-    WriteOptions,
-};
+use rocksdb_options::{CColumnFamilyDescriptor, ColumnFamilyDescriptor, ColumnFamilyOptions, CompactOptions, CompactionOptions, DBOptions, EnvOptions, FlushOptions, HistogramData, IngestExternalFileOptions, LRUCacheOptions, ReadOptions, RestoreOptions, UnsafeSnap, WriteOptions, DBTransactionOptions};
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 use std::ffi::{CStr, CString};
@@ -461,6 +456,11 @@ impl DB {
         DB::open_cf(opts, path, cfds)
     }
 
+    pub fn open_transaction(opts: DBOptions, transaction_opts: DBTransactionOptions, path: &str) -> Result<DB, String> {
+        let cfds: Vec<&str> = vec![];
+        DB::open_transaction_cf(opts, transaction_opts, path, cfds)
+    }
+
     pub fn open_with_ttl(opts: DBOptions, path: &str, ttls: &[i32]) -> Result<DB, String> {
         let cfds: Vec<&str> = vec![];
         if ttls.len() == 0 {
@@ -473,7 +473,14 @@ impl DB {
     where
         T: Into<ColumnFamilyDescriptor<'a>>,
     {
-        DB::open_cf_internal(opts, path, cfds, &[], None)
+        DB::open_cf_internal(opts, path, cfds, &[], None, None)
+    }
+
+    pub fn open_transaction_cf<'a, T>(opts: DBOptions, transaction_opts: DBTransactionOptions, path: &str, cfds: Vec<T>) -> Result<DB, String>
+    where
+        T: Into<ColumnFamilyDescriptor<'a>>,
+    {
+        DB::open_cf_internal(opts, path, cfds, &[], Some(transaction_opts), None)
     }
 
     pub fn open_cf_with_ttl<'a, T>(
@@ -488,7 +495,7 @@ impl DB {
         if ttls.len() == 0 {
             return Err("ttls is empty in with_ttl function".to_owned());
         }
-        DB::open_cf_internal(opts, path, cfds, ttls, None)
+        DB::open_cf_internal(opts, path, cfds, ttls, None, None)
     }
 
     pub fn open_for_read_only(
@@ -509,7 +516,7 @@ impl DB {
     where
         T: Into<ColumnFamilyDescriptor<'a>>,
     {
-        DB::open_cf_internal(opts, path, cfds, &[], Some(error_if_log_file_exist))
+        DB::open_cf_internal(opts, path, cfds, &[], None, Some(error_if_log_file_exist))
     }
 
     fn open_cf_internal<'a, T>(
@@ -519,6 +526,7 @@ impl DB {
         ttls: &[i32],
         // if none, open for read write mode.
         // otherwise, open for read only.
+        transaction_opts: Option<DBTransactionOptions>,
         error_if_log_file_exist: Option<bool>,
     ) -> Result<DB, String>
     where
@@ -591,7 +599,20 @@ impl DB {
             }
 
             if !with_ttl {
-                if let Some(flag) = error_if_log_file_exist {
+                if let Some(opts) = transaction_opts {
+                    let db_transaction_opts = opts.inner;
+                    unsafe {
+                        ffi_try!(crocksdb_transactiondb_open_column_families(
+                            db_options,
+                            db_transaction_opts,
+                            db_path,
+                            db_cfs_count,
+                            db_cf_ptrs,
+                            db_cf_opts,
+                            db_cf_handles
+                        ))
+                    }
+                } else if let Some(flag) = error_if_log_file_exist {
                     unsafe {
                         ffi_try!(crocksdb_open_for_read_only_column_families(
                             db_options,

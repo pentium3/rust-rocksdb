@@ -33,6 +33,7 @@
 #include "rocksdb/table_properties.h"
 #include "rocksdb/universal_compaction.h"
 #include "rocksdb/utilities/backupable_db.h"
+#include "rocksdb/utilities/transaction_db.h"
 #include "rocksdb/utilities/db_ttl.h"
 #include "rocksdb/utilities/debug.h"
 #include "rocksdb/utilities/options_util.h"
@@ -164,7 +165,10 @@ using rocksdb::PerfContext;
 using rocksdb::IOStatsContext;
 using rocksdb::BottommostLevelCompaction;
 using rocksdb::LDBTool;
-
+using rocksdb::TransactionDBOptions;
+using rocksdb::TransactionDB;
+using rocksdb::TransactionOptions;
+using rocksdb::Transaction;
 using rocksdb::kMaxSequenceNumber;
 
 using rocksdb::titandb::BlobIndex;
@@ -270,6 +274,13 @@ struct crocksdb_compaction_options_t {
 struct crocksdb_map_property_t {
   std::map<std::string, std::string> rep;
 };
+struct crocksdb_transactiondb_options_t {
+  TransactionDBOptions rep;
+};
+struct crocksdb_transactiondb_t {
+  TransactionDB* rep;
+};
+
 
 struct crocksdb_compactionfilter_t : public CompactionFilter {
   void* state_;
@@ -4768,6 +4779,82 @@ void crocksdb_compact_files_cf(
   }
   auto s = db->rep->CompactFiles(opts->rep, cf->rep, input_files, output_level);
   SaveError(errptr, s);
+}
+
+/* Transaction DB */
+crocksdb_transactiondb_options_t* crocksdb_transactiondb_options_create() {
+  return new crocksdb_transactiondb_options_t;
+}
+
+void crocksdb_transactiondb_options_destroy(crocksdb_transactiondb_options_t* opt){
+  delete opt;
+}
+
+void crocksdb_transactiondb_options_set_max_num_locks(
+    crocksdb_transactiondb_options_t* opt, int64_t max_num_locks) {
+  opt->rep.max_num_locks = max_num_locks;
+}
+
+void crocksdb_transactiondb_options_set_num_stripes(
+    crocksdb_transactiondb_options_t* opt, size_t num_stripes) {
+  opt->rep.num_stripes = num_stripes;
+}
+
+void crocksdb_transactiondb_options_set_transaction_lock_timeout(
+    crocksdb_transactiondb_options_t* opt, int64_t txn_lock_timeout) {
+  opt->rep.transaction_lock_timeout = txn_lock_timeout;
+}
+
+void crocksdb_transactiondb_options_set_default_lock_timeout(
+    crocksdb_transactiondb_options_t* opt, int64_t default_lock_timeout) {
+  opt->rep.default_lock_timeout = default_lock_timeout;
+}
+
+crocksdb_t* crocksdb_transactiondb_open(
+    const crocksdb_options_t* options,
+    const crocksdb_transactiondb_options_t* txn_db_options, const char* name,
+    char** errptr) {
+  TransactionDB* txn_db;
+  if (SaveError(errptr, TransactionDB::Open(options->rep, txn_db_options->rep,
+                                            std::string(name), &txn_db))) {
+    return nullptr;
+  }
+  crocksdb_t* result = new crocksdb_t;
+  result->rep = txn_db;
+  return result;
+}
+
+
+crocksdb_t* crocksdb_transactiondb_open_column_families(
+    const crocksdb_options_t* options,
+    const crocksdb_transactiondb_options_t* txn_db_options, const char* name,
+    int num_column_families, const char** column_family_names,
+    const crocksdb_options_t** column_family_options,
+    crocksdb_column_family_handle_t** column_family_handles, char** errptr) {
+  std::vector<ColumnFamilyDescriptor> column_families;
+  for (int i = 0; i < num_column_families; i++) {
+    column_families.push_back(ColumnFamilyDescriptor(
+        std::string(column_family_names[i]),
+        ColumnFamilyOptions(column_family_options[i]->rep)));
+  }
+
+  TransactionDB* txn_db;
+  std::vector<ColumnFamilyHandle*> handles;
+  if (SaveError(errptr, TransactionDB::Open(options->rep, txn_db_options->rep,
+                                            std::string(name), column_families,
+                                            &handles, &txn_db))) {
+    return nullptr;
+  }
+
+  for (size_t i = 0; i < handles.size(); i++) {
+    crocksdb_column_family_handle_t* c_handle =
+        new crocksdb_column_family_handle_t;
+    c_handle->rep = handles[i];
+    column_family_handles[i] = c_handle;
+  }
+  crocksdb_t* result = new crocksdb_t;
+  result->rep = txn_db;
+  return result;
 }
 
 /* PerfContext */

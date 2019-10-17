@@ -18,7 +18,7 @@ extern crate libc;
 #[cfg(test)]
 extern crate tempdir;
 
-use libc::{c_char, c_double, c_int, c_uchar, c_void, size_t, uint32_t, uint64_t, uint8_t};
+use libc::{c_char, c_double, c_int, c_uchar, c_void, size_t, uint32_t, uint64_t, uint8_t, int64_t};
 use std::ffi::CStr;
 use std::fmt;
 
@@ -76,6 +76,8 @@ pub enum DBIOStatsContext {}
 pub enum DBWriteStallInfo {}
 pub enum DBStatusPtr {}
 pub enum DBMapProperty {}
+pub enum TransactionDBOptions {}
+pub enum TransactionDBInstance {}
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 #[repr(C)]
@@ -1827,6 +1829,40 @@ extern "C" {
         output_level: c_int,
         errptr: *mut *mut c_char,
     );
+
+    pub fn crocksdb_transactiondb_options_create() -> *mut TransactionDBOptions;
+
+    pub fn crocksdb_transactiondb_options_destroy(opt: *mut TransactionDBOptions);
+
+    pub fn crocksdb_transactiondb_options_set_max_num_locks(
+        opt: *mut TransactionDBOptions, max_num_locks: i64);
+
+    pub fn crocksdb_transactiondb_options_set_num_stripes(
+        opt: *mut TransactionDBOptions, num_stripes: size_t);
+
+    pub fn crocksdb_transactiondb_options_set_transaction_lock_timeout(
+        opt: *mut TransactionDBOptions, txn_lock_timeout: i64);
+
+    pub fn crocksdb_transactiondb_options_set_default_lock_timeout(
+        opt: *mut TransactionDBOptions, default_lock_timeout: i64);
+
+    pub fn crocksdb_transactiondb_open(
+        options: *const Options,
+        txn_db_options: *const TransactionDBOptions,
+        name: *const c_char,
+        err: *mut *mut c_char,
+    ) -> *mut DBInstance;
+
+    pub fn crocksdb_transactiondb_open_column_families(
+        options: *const Options,
+        txn_db_options: *const TransactionDBOptions,
+        path: *const c_char,
+        num_column_families: c_int,
+        column_family_names: *const *const c_char,
+        column_family_options: *const *const Options,
+        column_family_handles: *const *mut DBCFHandle,
+        err: *mut *mut c_char,
+    ) -> *mut DBInstance;
 
     pub fn crocksdb_get_perf_level() -> c_int;
     pub fn crocksdb_set_perf_level(level: c_int);

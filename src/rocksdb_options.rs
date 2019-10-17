@@ -21,7 +21,7 @@ use crocksdb_ffi::{
     DBInfoLogLevel, DBInstance, DBLRUCacheOptions, DBRateLimiter, DBRateLimiterMode, DBReadOptions,
     DBRecoveryMode, DBRestoreOptions, DBSnapshot, DBStatisticsHistogramType,
     DBStatisticsTickerType, DBTitanDBOptions, DBTitanReadOptions, DBWriteOptions, IndexType,
-    Options,
+    Options, TransactionDBOptions,
 };
 use event_listener::{new_event_listener, EventListener};
 use libc::{self, c_double, c_int, c_uchar, c_void, size_t};
@@ -40,6 +40,7 @@ use table_properties_collector_factory::{
     new_table_properties_collector_factory, TablePropertiesCollectorFactory,
 };
 use titan::TitanDBOptions;
+use librocksdb_sys::crocksdb_approximate_memtable_stats;
 
 #[derive(Default, Debug)]
 pub struct HistogramData {
@@ -1947,6 +1948,59 @@ impl Drop for LRUCacheOptions {
     fn drop(&mut self) {
         unsafe {
             crocksdb_ffi::crocksdb_lru_cache_options_destroy(self.inner);
+        }
+    }
+}
+
+pub struct DBTransactionOptions {
+    pub inner: *mut TransactionDBOptions,
+}
+
+impl Default for DBTransactionOptions {
+    fn default() -> DBTransactionOptions {
+        unsafe {
+            let inner = crocksdb_ffi::crocksdb_transactiondb_options_create();
+            DBTransactionOptions {
+                inner,
+            }
+        }
+    }
+}
+
+impl Drop for DBTransactionOptions {
+    fn drop(&mut self) {
+        unsafe {
+            crocksdb_ffi::crocksdb_transactiondb_options_destroy(self.inner);
+        }
+    }
+}
+
+impl DBTransactionOptions {
+    pub fn new() -> DBTransactionOptions {
+        DBTransactionOptions::default()
+    }
+
+    pub fn set_max_num_locks(&mut self, max_num_locks: i64) {
+        unsafe {
+            crocksdb_ffi::crocksdb_transactiondb_options_set_max_num_locks(self.inner, max_num_locks);
+        }
+    }
+
+    pub fn set_num_stripes(&mut self, num_stripes: usize) {
+        unsafe {
+            crocksdb_ffi::crocksdb_transactiondb_options_set_num_stripes(self.inner, num_stripes);
+        }
+    }
+
+    pub fn crocksdb_transactiondb_options_set_transaction_lock_timeout(&mut self, txn_lock_timeout: i64) {
+        unsafe  {
+            crocksdb_ffi::crocksdb_transactiondb_options_set_transaction_lock_timeout(self.inner, txn_lock_timeout);
+        }
+    }
+
+    pub fn crocksdb_transactiondb_options_set_default_lock_timeout(&mut self, txn_lock_timeout: i64) {
+        unsafe {
+            crocksdb_ffi::crocksdb_transactiondb_options_set_default_lock_timeout(self.inner, txn_lock_timeout);
         }
     }
 }

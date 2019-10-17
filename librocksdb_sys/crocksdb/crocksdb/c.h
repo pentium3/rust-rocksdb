@@ -147,6 +147,8 @@ typedef struct crocksdb_iostats_context_t crocksdb_iostats_context_t;
 typedef struct crocksdb_writestallinfo_t crocksdb_writestallinfo_t;
 typedef struct crocksdb_writestallcondition_t crocksdb_writestallcondition_t;
 typedef struct crocksdb_map_property_t crocksdb_map_property_t;
+typedef struct crocksdb_transactiondb_options_t crocksdb_transactiondb_options_t;;
+typedef struct crocksdb_transactiondb_t crocksdb_transactiondb_t;
 
 typedef enum crocksdb_table_property_t {
   kDataSize = 1,
@@ -1859,6 +1861,42 @@ crocksdb_compact_files_cf(crocksdb_t*, crocksdb_column_family_handle_t*,
                           size_t input_file_count,
                           int output_level,
                           char** errptr);
+
+/* Transaction */
+extern C_ROCKSDB_LIBRARY_API
+crocksdb_transactiondb_options_t* crocksdb_transactiondb_options_create();
+
+extern C_ROCKSDB_LIBRARY_API void
+crocksdb_transactiondb_options_destroy(crocksdb_transactiondb_options_t* opt);
+
+extern C_ROCKSDB_LIBRARY_API void
+crocksdb_transactiondb_options_set_max_num_locks(
+    crocksdb_transactiondb_options_t* opt, int64_t max_num_locks);
+
+extern C_ROCKSDB_LIBRARY_API void
+crocksdb_transactiondb_options_set_num_stripes(
+    crocksdb_transactiondb_options_t* opt, size_t num_stripes);
+
+extern C_ROCKSDB_LIBRARY_API void
+crocksdb_transactiondb_options_set_transaction_lock_timeout(
+    crocksdb_transactiondb_options_t* opt, int64_t txn_lock_timeout);
+
+extern C_ROCKSDB_LIBRARY_API void
+crocksdb_transactiondb_options_set_default_lock_timeout(
+    crocksdb_transactiondb_options_t* opt, int64_t default_lock_timeout);
+
+extern C_ROCKSDB_LIBRARY_API crocksdb_t* crocksdb_transactiondb_open(
+    const crocksdb_options_t* options,
+    const crocksdb_transactiondb_options_t* txn_db_options, const char* name,
+    char** errptr);
+
+extern C_ROCKSDB_LIBRARY_API crocksdb_t* crocksdb_transactiondb_open_column_families(
+    const crocksdb_options_t* options,
+    const crocksdb_transactiondb_options_t* txn_db_options, const char* name,
+    int num_column_families, const char** column_family_names,
+    const crocksdb_options_t** column_family_options,
+    crocksdb_column_family_handle_t** column_family_handles, char** errptr);
+
 
 /* PerfContext */
 extern C_ROCKSDB_LIBRARY_API int crocksdb_get_perf_level(void);
