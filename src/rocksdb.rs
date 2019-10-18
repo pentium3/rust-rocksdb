@@ -18,9 +18,14 @@ use crocksdb_ffi::{
     DBTitanDBOptions, DBWriteBatch,
 };
 use libc::{self, c_char, c_int, c_void, size_t};
-use librocksdb_sys::{DBMemoryAllocator, crocksdb_transactiondb_open_column_families};
+use librocksdb_sys::{crocksdb_transactiondb_open_column_families, DBMemoryAllocator};
 use metadata::ColumnFamilyMetaData;
-use rocksdb_options::{CColumnFamilyDescriptor, ColumnFamilyDescriptor, ColumnFamilyOptions, CompactOptions, CompactionOptions, DBOptions, EnvOptions, FlushOptions, HistogramData, IngestExternalFileOptions, LRUCacheOptions, ReadOptions, RestoreOptions, UnsafeSnap, WriteOptions, DBTransactionOptions};
+use rocksdb_options::{
+    CColumnFamilyDescriptor, ColumnFamilyDescriptor, ColumnFamilyOptions, CompactOptions,
+    CompactionOptions, DBOptions, DBTransactionOptions, EnvOptions, FlushOptions, HistogramData,
+    IngestExternalFileOptions, LRUCacheOptions, ReadOptions, RestoreOptions, UnsafeSnap,
+    WriteOptions,
+};
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 use std::ffi::{CStr, CString};
@@ -456,7 +461,11 @@ impl DB {
         DB::open_cf(opts, path, cfds)
     }
 
-    pub fn open_transaction(opts: DBOptions, transaction_opts: DBTransactionOptions, path: &str) -> Result<DB, String> {
+    pub fn open_transaction(
+        opts: DBOptions,
+        transaction_opts: DBTransactionOptions,
+        path: &str,
+    ) -> Result<DB, String> {
         let cfds: Vec<&str> = vec![];
         DB::open_transaction_cf(opts, transaction_opts, path, cfds)
     }
@@ -476,7 +485,12 @@ impl DB {
         DB::open_cf_internal(opts, path, cfds, &[], None, None)
     }
 
-    pub fn open_transaction_cf<'a, T>(opts: DBOptions, transaction_opts: DBTransactionOptions, path: &str, cfds: Vec<T>) -> Result<DB, String>
+    pub fn open_transaction_cf<'a, T>(
+        opts: DBOptions,
+        transaction_opts: DBTransactionOptions,
+        path: &str,
+        cfds: Vec<T>,
+    ) -> Result<DB, String>
     where
         T: Into<ColumnFamilyDescriptor<'a>>,
     {
@@ -3200,5 +3214,21 @@ mod test {
         let cf_handle = db.cf_handle("default").unwrap();
         let mp = db.get_map_property_cf(cf_handle, "rocksdb.cfstats");
         assert!(mp.is_some());
+    }
+
+    #[test]
+    fn test_transaction_db() {
+        let path = TempDir::new("_rust_rocksdb_transaction_db").expect("");
+        let dbpath = path.path().to_str().unwrap().clone();
+
+        let mut opts = DBOptions::new();
+        let mut transaction_opts = DBTransactionOptions::new();
+        opts.create_if_missing(true);
+        let mut db = DB::open_transaction(opts, transaction_opts, dbpath).unwrap();
+        let mut cf_opts = ColumnFamilyOptions::new();
+        let handle = db.create_cf(("write", cf_opts)).unwrap();
+        let mut batch = WriteBatch::new();
+        batch.put_cf(handle, b"aaa", b"bbb");
+        db.write(&batch);
     }
 }

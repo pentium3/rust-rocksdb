@@ -18,7 +18,9 @@ extern crate libc;
 #[cfg(test)]
 extern crate tempdir;
 
-use libc::{c_char, c_double, c_int, c_uchar, c_void, size_t, uint32_t, uint64_t, uint8_t, int64_t};
+use libc::{
+    c_char, c_double, c_int, c_uchar, c_void, int64_t, size_t, uint32_t, uint64_t, uint8_t,
+};
 use std::ffi::CStr;
 use std::fmt;
 
@@ -1835,16 +1837,24 @@ extern "C" {
     pub fn crocksdb_transactiondb_options_destroy(opt: *mut TransactionDBOptions);
 
     pub fn crocksdb_transactiondb_options_set_max_num_locks(
-        opt: *mut TransactionDBOptions, max_num_locks: i64);
+        opt: *mut TransactionDBOptions,
+        max_num_locks: i64,
+    );
 
     pub fn crocksdb_transactiondb_options_set_num_stripes(
-        opt: *mut TransactionDBOptions, num_stripes: size_t);
+        opt: *mut TransactionDBOptions,
+        num_stripes: size_t,
+    );
 
     pub fn crocksdb_transactiondb_options_set_transaction_lock_timeout(
-        opt: *mut TransactionDBOptions, txn_lock_timeout: i64);
+        opt: *mut TransactionDBOptions,
+        txn_lock_timeout: i64,
+    );
 
     pub fn crocksdb_transactiondb_options_set_default_lock_timeout(
-        opt: *mut TransactionDBOptions, default_lock_timeout: i64);
+        opt: *mut TransactionDBOptions,
+        default_lock_timeout: i64,
+    );
 
     pub fn crocksdb_transactiondb_open(
         options: *const Options,
