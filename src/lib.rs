@@ -42,7 +42,7 @@ pub use rocksdb_options::{
     BlockBasedOptions, CColumnFamilyDescriptor, ColumnFamilyOptions, CompactOptions,
     CompactionOptions, DBOptions, EnvOptions, FifoCompactionOptions, HistogramData,
     IngestExternalFileOptions, LRUCacheOptions, RateLimiter, ReadOptions, RestoreOptions,
-    WriteOptions,
+    TxnDBOptions, WriteOptions,
 };
 pub use slice_transform::SliceTransform;
 pub use table_filter::TableFilter;

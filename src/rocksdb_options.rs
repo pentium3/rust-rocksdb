@@ -1952,20 +1952,20 @@ impl Drop for LRUCacheOptions {
     }
 }
 
-pub struct DBTransactionOptions {
+pub struct TxnDBOptions {
     pub inner: *mut TransactionDBOptions,
 }
 
-impl Default for DBTransactionOptions {
-    fn default() -> DBTransactionOptions {
+impl Default for TxnDBOptions {
+    fn default() -> TxnDBOptions {
         unsafe {
             let inner = crocksdb_ffi::crocksdb_transactiondb_options_create();
-            DBTransactionOptions { inner }
+            TxnDBOptions { inner }
         }
     }
 }
 
-impl Drop for DBTransactionOptions {
+impl Drop for TxnDBOptions {
     fn drop(&mut self) {
         unsafe {
             crocksdb_ffi::crocksdb_transactiondb_options_destroy(self.inner);
@@ -1973,9 +1973,9 @@ impl Drop for DBTransactionOptions {
     }
 }
 
-impl DBTransactionOptions {
-    pub fn new() -> DBTransactionOptions {
-        DBTransactionOptions::default()
+impl TxnDBOptions {
+    pub fn new() -> TxnDBOptions {
+        TxnDBOptions::default()
     }
 
     pub fn set_max_num_locks(&mut self, max_num_locks: i64) {

@@ -22,9 +22,9 @@ use librocksdb_sys::{crocksdb_transactiondb_open_column_families, DBMemoryAlloca
 use metadata::ColumnFamilyMetaData;
 use rocksdb_options::{
     CColumnFamilyDescriptor, ColumnFamilyDescriptor, ColumnFamilyOptions, CompactOptions,
-    CompactionOptions, DBOptions, DBTransactionOptions, EnvOptions, FlushOptions, HistogramData,
-    IngestExternalFileOptions, LRUCacheOptions, ReadOptions, RestoreOptions, UnsafeSnap,
-    WriteOptions,
+    CompactionOptions, DBOptions, EnvOptions, FlushOptions, HistogramData,
+    IngestExternalFileOptions, LRUCacheOptions, ReadOptions, RestoreOptions, TxnDBOptions,
+    UnsafeSnap, WriteOptions,
 };
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
@@ -463,7 +463,7 @@ impl DB {
 
     pub fn open_transaction(
         opts: DBOptions,
-        transaction_opts: DBTransactionOptions,
+        transaction_opts: TxnDBOptions,
         path: &str,
     ) -> Result<DB, String> {
         let cfds: Vec<&str> = vec![];
@@ -487,7 +487,7 @@ impl DB {
 
     pub fn open_transaction_cf<'a, T>(
         opts: DBOptions,
-        transaction_opts: DBTransactionOptions,
+        transaction_opts: TxnDBOptions,
         path: &str,
         cfds: Vec<T>,
     ) -> Result<DB, String>
@@ -540,7 +540,7 @@ impl DB {
         ttls: &[i32],
         // if none, open for read write mode.
         // otherwise, open for read only.
-        transaction_opts: Option<DBTransactionOptions>,
+        transaction_opts: Option<TxnDBOptions>,
         error_if_log_file_exist: Option<bool>,
     ) -> Result<DB, String>
     where
@@ -3222,7 +3222,7 @@ mod test {
         let dbpath = path.path().to_str().unwrap().clone();
 
         let mut opts = DBOptions::new();
-        let mut transaction_opts = DBTransactionOptions::new();
+        let mut transaction_opts = TxnDBOptions::new();
         opts.create_if_missing(true);
         let mut db = DB::open_transaction(opts, transaction_opts, dbpath).unwrap();
         let mut cf_opts = ColumnFamilyOptions::new();
