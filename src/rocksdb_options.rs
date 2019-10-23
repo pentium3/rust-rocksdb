@@ -1993,10 +1993,7 @@ impl TxnDBOptions {
         }
     }
 
-    pub fn set_transaction_lock_timeout(
-        &mut self,
-        txn_lock_timeout: i64,
-    ) {
+    pub fn set_transaction_lock_timeout(&mut self, txn_lock_timeout: i64) {
         unsafe {
             crocksdb_ffi::crocksdb_transactiondb_options_set_transaction_lock_timeout(
                 self.inner,
@@ -2005,10 +2002,7 @@ impl TxnDBOptions {
         }
     }
 
-    pub fn set_default_lock_timeout(
-        &mut self,
-        txn_lock_timeout: i64,
-    ) {
+    pub fn set_default_lock_timeout(&mut self, txn_lock_timeout: i64) {
         unsafe {
             crocksdb_ffi::crocksdb_transactiondb_options_set_default_lock_timeout(
                 self.inner,
