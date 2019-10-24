@@ -25,7 +25,7 @@ use crocksdb_ffi::{
 };
 use event_listener::{new_event_listener, EventListener};
 use libc::{self, c_double, c_int, c_uchar, c_void, size_t};
-use librocksdb_sys::crocksdb_approximate_memtable_stats;
+use librocksdb_sys::{crocksdb_approximate_memtable_stats, TransactionWritePolicy};
 use merge_operator::MergeFn;
 use merge_operator::{self, full_merge_callback, partial_merge_callback, MergeOperatorCallback};
 use rocksdb::Env;
@@ -1023,6 +1023,12 @@ impl DBOptions {
         }
     }
 
+    pub fn enable_unordered_write(&self, v: bool) {
+        unsafe {
+            crocksdb_ffi::crocksdb_options_set_unordered_write(self.inner, v);
+        }
+    }
+
     pub fn allow_concurrent_memtable_write(&self, v: bool) {
         unsafe {
             crocksdb_ffi::crocksdb_options_set_allow_concurrent_memtable_write(self.inner, v);
@@ -2008,6 +2014,12 @@ impl TxnDBOptions {
                 self.inner,
                 txn_lock_timeout,
             );
+        }
+    }
+
+    pub fn set_write_policy(&mut self, policy: TransactionWritePolicy) {
+        unsafe {
+            crocksdb_ffi::crocksdb_transactiondb_options_set_write_policy(self.inner, policy);
         }
     }
 }

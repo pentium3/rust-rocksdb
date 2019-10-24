@@ -2600,6 +2600,11 @@ void crocksdb_options_set_enable_pipelined_write(crocksdb_options_t *opt,
   opt->rep.enable_pipelined_write = v;
 }
 
+void crocksdb_options_set_unordered_write(crocksdb_options_t* opt,
+                                                unsigned char v) {
+  opt->rep.unordered_write = v;
+}
+
 void crocksdb_options_set_allow_concurrent_memtable_write(crocksdb_options_t* opt,
                                                          unsigned char v) {
   opt->rep.allow_concurrent_memtable_write = v;
@@ -4788,6 +4793,22 @@ crocksdb_transactiondb_options_t* crocksdb_transactiondb_options_create() {
 
 void crocksdb_transactiondb_options_destroy(crocksdb_transactiondb_options_t* opt){
   delete opt;
+}
+
+void crocksdb_transactiondb_options_set_write_policy(crocksdb_transactiondb_options_t* opt, int v){
+  switch (v) {
+    case 0:
+      opt->rep.write_policy = rocksdb::TxnDBWritePolicy::WRITE_COMMITTED;
+      break;
+    case 1:
+      opt->rep.write_policy = rocksdb::TxnDBWritePolicy::WRITE_PREPARED;
+      break;
+    case 2:
+      opt->rep.write_policy = rocksdb::TxnDBWritePolicy::WRITE_UNPREPARED;
+      break;
+    default:
+      break;
+  }
 }
 
 void crocksdb_transactiondb_options_set_max_num_locks(
