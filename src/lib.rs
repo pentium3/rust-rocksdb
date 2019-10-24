@@ -28,7 +28,8 @@ pub use librocksdb_sys::{
     self as crocksdb_ffi, new_bloom_filter, CompactionPriority, CompactionReason,
     DBBackgroundErrorReason, DBBottommostLevelCompaction, DBCompactionStyle, DBCompressionType,
     DBEntryType, DBInfoLogLevel, DBRateLimiterMode, DBRecoveryMode, DBStatisticsHistogramType,
-    DBStatisticsTickerType, DBStatusPtr, DBTitanDBBlobRunMode, IndexType, WriteStallCondition,
+    DBStatisticsTickerType, DBStatusPtr, DBTitanDBBlobRunMode, IndexType, TransactionWritePolicy,
+    WriteStallCondition,
 };
 pub use merge_operator::MergeOperands;
 pub use metadata::{ColumnFamilyMetaData, LevelMetaData, SstFileMetaData};

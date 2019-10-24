@@ -21,11 +21,10 @@ use crocksdb_ffi::{
     DBInfoLogLevel, DBInstance, DBLRUCacheOptions, DBRateLimiter, DBRateLimiterMode, DBReadOptions,
     DBRecoveryMode, DBRestoreOptions, DBSnapshot, DBStatisticsHistogramType,
     DBStatisticsTickerType, DBTitanDBOptions, DBTitanReadOptions, DBWriteOptions, IndexType,
-    Options, TransactionDBOptions,
+    Options, TransactionDBOptions, TransactionWritePolicy,
 };
 use event_listener::{new_event_listener, EventListener};
 use libc::{self, c_double, c_int, c_uchar, c_void, size_t};
-use librocksdb_sys::{crocksdb_approximate_memtable_stats, TransactionWritePolicy};
 use merge_operator::MergeFn;
 use merge_operator::{self, full_merge_callback, partial_merge_callback, MergeOperatorCallback};
 use rocksdb::Env;
