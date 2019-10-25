@@ -25,6 +25,7 @@ use crocksdb_ffi::{
 };
 use event_listener::{new_event_listener, EventListener};
 use libc::{self, c_double, c_int, c_uchar, c_void, size_t};
+use librocksdb_sys::{crocksdb_approximate_memtable_stats, crocksdb_flushjobinfo_file_path};
 use merge_operator::MergeFn;
 use merge_operator::{self, full_merge_callback, partial_merge_callback, MergeOperatorCallback};
 use rocksdb::Env;
@@ -1028,6 +1029,12 @@ impl DBOptions {
         }
     }
 
+    pub fn enable_two_write_queue(&self, v: bool) {
+        unsafe {
+            crocksdb_ffi::crocksdb_options_set_two_write_queues(self.inner, v);
+        }
+    }
+
     pub fn allow_concurrent_memtable_write(&self, v: bool) {
         unsafe {
             crocksdb_ffi::crocksdb_options_set_allow_concurrent_memtable_write(self.inner, v);
@@ -2019,6 +2026,14 @@ impl TxnDBOptions {
     pub fn set_write_policy(&mut self, policy: TransactionWritePolicy) {
         unsafe {
             crocksdb_ffi::crocksdb_transactiondb_options_set_write_policy(self.inner, policy);
+        }
+    }
+
+    pub fn set_skip_concurrency_control(&mut self, v: bool) {
+        unsafe {
+            crocksdb_ffi::crocksdb_transactiondb_options_set_skip_concurrency_control(
+                self.inner, v,
+            );
         }
     }
 }

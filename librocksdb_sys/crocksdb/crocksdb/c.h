@@ -1048,6 +1048,9 @@ crocksdb_options_set_enable_pipelined_write(crocksdb_options_t *, unsigned char)
 extern C_ROCKSDB_LIBRARY_API void
 crocksdb_options_set_unordered_write(crocksdb_options_t*, unsigned char);
 extern C_ROCKSDB_LIBRARY_API void
+crocksdb_options_set_two_write_queues(crocksdb_options_t*, unsigned char);
+
+extern C_ROCKSDB_LIBRARY_API void
 crocksdb_options_set_allow_concurrent_memtable_write(crocksdb_options_t *,
                                                      unsigned char);
 extern C_ROCKSDB_LIBRARY_API void crocksdb_options_set_manual_wal_flush(
@@ -1888,6 +1891,11 @@ crocksdb_transactiondb_options_set_transaction_lock_timeout(
 extern C_ROCKSDB_LIBRARY_API void
 crocksdb_transactiondb_options_set_default_lock_timeout(
     crocksdb_transactiondb_options_t* opt, int64_t default_lock_timeout);
+
+extern C_ROCKSDB_LIBRARY_API void
+crocksdb_transactiondb_options_set_skip_concurrency_control(
+    crocksdb_transactiondb_options_t* opt, unsigned char v);
+
 
 extern C_ROCKSDB_LIBRARY_API crocksdb_t* crocksdb_transactiondb_open(
     const crocksdb_options_t* options,

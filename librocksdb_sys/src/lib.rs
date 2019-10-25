@@ -498,6 +498,7 @@ extern "C" {
     pub fn crocksdb_options_set_bytes_per_sync(options: *mut Options, bytes: u64);
     pub fn crocksdb_options_set_enable_pipelined_write(options: *mut Options, v: bool);
     pub fn crocksdb_options_set_unordered_write(options: *mut Options, v: bool);
+    pub fn crocksdb_options_set_two_write_queues(options: *mut Options, v: bool);
     pub fn crocksdb_options_set_allow_concurrent_memtable_write(options: *mut Options, v: bool);
     pub fn crocksdb_options_set_manual_wal_flush(options: *mut Options, v: bool);
     pub fn crocksdb_options_optimize_for_point_lookup(
@@ -1866,6 +1867,11 @@ extern "C" {
         opt: *mut TransactionDBOptions,
         default_lock_timeout: i64,
     );
+
+    pub fn crocksdb_transactiondb_options_set_skip_concurrency_control(
+        opt: *mut TransactionDBOptions,
+        skip_concurrency_control: bool);
+
 
     pub fn crocksdb_transactiondb_open(
         options: *const Options,

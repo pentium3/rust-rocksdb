@@ -2605,6 +2605,12 @@ void crocksdb_options_set_unordered_write(crocksdb_options_t* opt,
   opt->rep.unordered_write = v;
 }
 
+void crocksdb_options_set_two_write_queues(crocksdb_options_t* opt,
+                                                unsigned char v) {
+  opt->rep.two_write_queues = v;
+}
+
+
 void crocksdb_options_set_allow_concurrent_memtable_write(crocksdb_options_t* opt,
                                                          unsigned char v) {
   opt->rep.allow_concurrent_memtable_write = v;
@@ -4829,6 +4835,11 @@ void crocksdb_transactiondb_options_set_transaction_lock_timeout(
 void crocksdb_transactiondb_options_set_default_lock_timeout(
     crocksdb_transactiondb_options_t* opt, int64_t default_lock_timeout) {
   opt->rep.default_lock_timeout = default_lock_timeout;
+}
+
+void crocksdb_transactiondb_options_set_skip_concurrency_control(
+    crocksdb_transactiondb_options_t* opt, unsigned char v) {
+  opt->rep.skip_concurrency_control = v;
 }
 
 crocksdb_t* crocksdb_transactiondb_open(
